@@ -1,23 +1,22 @@
 export interface Preset {
-  name: string;
-  packages: string[];
+    name: string;
+    packages: string[];
 }
 
 export interface TurboDevConfig {
-  presets?: Record<string, Preset>;
-  command?: string;
-  runAll?: boolean;
+    presets?: Record<string, Preset>;
+    runAll?: boolean;
 }
 
 export type WorkspaceType = 'app' | 'package';
 
 export interface Workspace {
-  name: string;
-  dir: string;
-  type: WorkspaceType;
+    name: string;
+    dir: string;
+    type: WorkspaceType;
 }
 
 export interface CacheData {
-  lastSelected: string[];
-  timestamp: number;
+    lastSelected: string[];
+    timestamp: number;
 }

@@ -1,35 +1,35 @@
-# 🚀 turbo-dev
+# turbo-run
 
-Interactive TurboRepo workspace selector. Run `dev` (or any command) for specific packages without typing long filters.
+Interactive TurboRepo workspace selector. Run `dev` by default, or pass another Turbo task for specific packages without typing long filters.
 
-## ✨ Features
+## Features
 
-- 📂 **Auto Workspace Detection**: Automatically finds your apps and packages (pnpm, npm, yarn).
-- ⚡ **Presets**: Save common service combinations in a config file.
-- ↺ **Smart Caching**: Remembers your last selection for even faster startups.
-- 🏗️ **Ordered UI**: Clean, grouped interface (Presets → Apps → Packages).
-- 🛠️ **Configurable**: Fully customizable via `turbo-dev.config.js`.
+- Auto workspace detection for `pnpm`, `npm`, and `yarn`
+- Presets for common app/package groups
+- Caching for the last selection
+- Interactive app/package picker
+- Configurable with `turbo-run.config.js`
 
----
-
-## 🚀 Usage
+## Usage
 
 ### Option 1: Direct Run (No Install)
 
 Run it directly in your Turborepo root using `npx`:
 
 ```bash
-npx turbo-dev
+npx turbo-run
+npx turbo-run build
 ```
 
 ### Option 2: Global Installation
 
-Install globally to use the `turbo-dev` command anywhere:
+Install globally to use the `turbo-run` command anywhere:
 
 ```bash
-npm install -g turbo-dev
-# Then just run:
-turbo-dev
+npm install -g turbo-run
+
+turbo-run
+turbo-run lint
 ```
 
 ### Option 3: Local Script (Recommended for Teams)
@@ -37,50 +37,42 @@ turbo-dev
 Install as a dev dependency:
 
 ```bash
-npm install -D turbo-dev
+npm install -D turbo-run
 ```
 
 Then add it to your `package.json` scripts:
 
 ```json
 {
-  "scripts": {
-    "dev:select": "turbo-dev"
-  }
+    "scripts": {
+        "dev:select": "turbo-run",
+        "build:select": "turbo-run build"
+    }
 }
 ```
 
----
+## Configuration
 
-## ⚙️ Configuration
-
-Create a `turbo-dev.config.js` in your root directory to define presets:
+Create a `turbo-run.config.js` in your root directory to define presets:
 
 ```javascript
 module.exports = {
-  // Define common groups of services
-  presets: {
-    web_db: {
-      name: "Web + Database",
-      packages: ["web", "@repo/db"],
+    presets: {
+        web_db: {
+            name: 'Web + Database',
+            packages: ['web', '@repo/db'],
+        },
+        api_only: {
+            name: 'API & Config',
+            packages: ['api', '@repo/config'],
+        },
     },
-    api_only: {
-      name: "API & Config",
-      packages: ["api", "@repo/config"],
-    },
-  },
 
-  // Override the default turbo command (default is "dev")
-  command: "dev",
-
-  // Enable/disable the "Run all" option
-  runAll: true,
+    runAll: true,
 };
 ```
 
----
-
-## 🚩 CLI Flags
+## CLI Flags
 
 | Flag              | Description                                               |
 | :---------------- | :-------------------------------------------------------- |
@@ -91,17 +83,32 @@ module.exports = {
 | `--version`       | Show version                                              |
 | `--help`          | Show help                                                 |
 
----
+Positional command:
 
-## 📦 How to Publish to NPM
+```bash
+npx turbo-run        # defaults to "dev"
+npx turbo-run dev
+npx turbo-run build
+```
+
+## Publish to npm
 
 1. **Update Version**: Bump the version in `package.json`.
-2. **Build**: Run `npm run build` to generate the `dist` folder.
-3. **Login**: `npm login` (if not logged in).
-4. **Publish**: `npm publish --access public`.
+2. **Create a Changeset**: Run `npm run changeset` and describe the release.
+3. **Version Packages**: Run `npm run version-packages` to apply the version bump.
+4. **Format and Verify**: Run `npm run format`, `npm run format:check`, and `npm run build`.
+5. **Verify Package Contents**: Run `npm pack --dry-run` and confirm only the expected files are included.
+6. **Login**: `npm login` (if not logged in).
+7. **Publish**: Run `npm run release` or `npm publish --access public`.
 
----
+## Development
 
-## 📄 License
+```bash
+npm run format
+npm run format:check
+npm run changeset
+```
+
+## License
 
 MIT
