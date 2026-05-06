@@ -94,12 +94,12 @@ npx turbo-run build
 ## Publish to npm
 
 1. **Update Version**: Bump the version in `package.json`.
-2. **Create a Changeset**: Run `npm run changeset` and describe the release.
-3. **Version Packages**: Run `npm run version-packages` to apply the version bump.
-4. **Format and Verify**: Run `npm run format`, `npm run format:check`, and `npm run build`.
-5. **Verify Package Contents**: Run `npm pack --dry-run` and confirm only the expected files are included.
-6. **Login**: `npm login` (if not logged in).
-7. **Publish**: Run `npm run release` or `npm publish --access public`.
+2. **Create a Changeset**: Run `pnpm run changeset` and describe the release.
+3. **Version Packages**: Run `pnpm run version-packages` to apply the version bump.
+4. **Format and Verify**: Run `pnpm run format`, `pnpm run format:check`, and `pnpm run build`.
+5. **Verify Package Contents**: Run `pnpm pack --dry-run` and confirm only the expected files are included.
+6. **Login**: `pnpm login` (if not logged in).
+7. **Publish**: Run `pnpm run release` or `pnpm publish --access public`.
 
 ## Development
 
