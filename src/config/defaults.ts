@@ -1,4 +1,4 @@
-import { TurboDevConfig } from '../types';
+import { TurboDevConfig } from "../types";
 
 export const defaultConfig: TurboDevConfig = {
     presets: {},

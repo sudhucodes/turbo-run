@@ -59,12 +59,12 @@ Create a `turbo-run.config.js` in your root directory to define presets:
 module.exports = {
     presets: {
         web_db: {
-            name: 'Web + Database',
-            packages: ['web', '@repo/db'],
+            name: "Web + Database",
+            packages: ["web", "@repo/db"],
         },
         api_only: {
-            name: 'API & Config',
-            packages: ['api', '@repo/config'],
+            name: "API & Config",
+            packages: ["api", "@repo/config"],
         },
     },
 

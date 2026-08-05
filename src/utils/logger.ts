@@ -1,4 +1,4 @@
-import pc from 'picocolors';
+import pc from "picocolors";
 
 export const logger = {
     info: (msg: string) => console.log(pc.blue(msg)),

@@ -8,7 +8,7 @@ export interface TurboDevConfig {
     runAll?: boolean;
 }
 
-export type WorkspaceType = 'app' | 'package';
+export type WorkspaceType = "app" | "package";
 
 export interface Workspace {
     name: string;

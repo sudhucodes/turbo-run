@@ -1,6 +1,6 @@
-import prompts from 'prompts';
-import { Workspace, TurboDevConfig, CacheData } from '../types';
-import pc from 'picocolors';
+import prompts from "prompts";
+import { Workspace, TurboDevConfig, CacheData } from "../types";
+import pc from "picocolors";
 
 export async function selectPackages(
     workspaces: Workspace[],
@@ -11,10 +11,8 @@ export async function selectPackages(
 
     if (cache && cache.lastSelected.length > 0) {
         choices.push({
-            title: pc.cyan(
-                `↺ Last selection (${cache.lastSelected.join(', ')})`,
-            ),
-            value: '__cache',
+            title: pc.cyan(`↺ Last selection (${cache.lastSelected.join(", ")})`),
+            value: "__cache",
         });
     }
 
@@ -29,19 +27,19 @@ export async function selectPackages(
 
     if (config.runAll !== false) {
         choices.push({
-            title: pc.bold('Run all'),
-            value: '__all',
+            title: pc.bold("Run all"),
+            value: "__all",
         });
     }
 
-    const apps = workspaces.filter((w) => w.type === 'app');
+    const apps = workspaces.filter((w) => w.type === "app");
     if (apps.length > 0) {
         apps.forEach((app) => {
             choices.push({ title: app.name, value: app.name });
         });
     }
 
-    const packages = workspaces.filter((w) => w.type === 'package');
+    const packages = workspaces.filter((w) => w.type === "package");
     if (packages.length > 0) {
         packages.forEach((pkg) => {
             choices.push({ title: pkg.name, value: pkg.name });
@@ -49,12 +47,12 @@ export async function selectPackages(
     }
 
     const response = await prompts({
-        type: 'multiselect',
-        name: 'selected',
-        message: 'Select apps/packages to run:',
+        type: "multiselect",
+        name: "selected",
+        message: "Select apps/packages to run:",
         choices,
         min: 1,
-        hint: '- Space to select, Enter to confirm',
+        hint: "- Space to select, Enter to confirm",
         instructions: false,
     });
 
@@ -71,17 +69,17 @@ function resolveSelection(
     config: TurboDevConfig,
     cache: CacheData | null,
 ): string[] {
-    if (selected.includes('__all')) {
+    if (selected.includes("__all")) {
         return allWorkspaces.map((w) => w.name);
     }
 
     const final = new Set<string>();
 
     for (const item of selected) {
-        if (item === '__cache' && cache) {
+        if (item === "__cache" && cache) {
             cache.lastSelected.forEach((p) => final.add(p));
-        } else if (item.startsWith('__preset:')) {
-            const presetId = item.replace('__preset:', '');
+        } else if (item.startsWith("__preset:")) {
+            const presetId = item.replace("__preset:", "");
             const preset = config.presets?.[presetId];
             if (preset) {
                 preset.packages.forEach((p) => final.add(p));

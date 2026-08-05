@@ -1,18 +1,34 @@
-import fs from 'fs';
-import path from 'path';
-import glob from 'fast-glob';
-import yaml from 'yaml';
-import { Workspace, WorkspaceType } from '../types';
+import fs from "fs";
+import path from "path";
+import glob from "fast-glob";
+import yaml from "yaml";
+import { Workspace, WorkspaceType } from "../types";
+
+async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await fs.promises.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 export async function getWorkspaces(): Promise<Workspace[]> {
     const cwd = process.cwd();
-    const pkgJsonPath = path.join(cwd, 'package.json');
+    const pkgJsonPath = path.join(cwd, "package.json");
 
-    if (!fs.existsSync(pkgJsonPath)) {
+    if (!(await fileExists(pkgJsonPath))) {
         return [];
     }
 
-    const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+    let pkgJson: any = {};
+    try {
+        const pkgContent = await fs.promises.readFile(pkgJsonPath, "utf-8");
+        pkgJson = JSON.parse(pkgContent);
+    } catch {
+        return [];
+    }
+
     let workspaceGlobs: string[] = [];
 
     // 1. Check npm/yarn workspaces
@@ -23,59 +39,67 @@ export async function getWorkspaces(): Promise<Workspace[]> {
     }
 
     // 2. Check pnpm-workspace.yaml
-    const pnpmWorkspacePath = path.join(cwd, 'pnpm-workspace.yaml');
-    if (workspaceGlobs.length === 0 && fs.existsSync(pnpmWorkspacePath)) {
-        const pnpmWorkspace = yaml.parse(
-            fs.readFileSync(pnpmWorkspacePath, 'utf-8'),
-        );
-        workspaceGlobs = pnpmWorkspace.packages || [];
+    const pnpmWorkspacePath = path.join(cwd, "pnpm-workspace.yaml");
+    if (workspaceGlobs.length === 0 && (await fileExists(pnpmWorkspacePath))) {
+        try {
+            const pnpmContent = await fs.promises.readFile(pnpmWorkspacePath, "utf-8");
+            const pnpmWorkspace = yaml.parse(pnpmContent);
+            workspaceGlobs = pnpmWorkspace?.packages || [];
+        } catch {
+            // Ignore invalid pnpm-workspace.yaml
+        }
     }
 
     if (workspaceGlobs.length === 0) {
         // Fallback to current directory if no workspaces found (not a monorepo?)
-        // But usually turbo is used in monorepos. Let's return the root if it has a dev script.
         if (pkgJson.scripts) {
-            return [{ name: pkgJson.name || 'root', dir: '.', type: 'app' }];
+            return [{ name: pkgJson.name || "root", dir: ".", type: "app" }];
         }
         return [];
     }
 
-    // 3. Resolve globs
+    // 3. Resolve globs with ignore patterns for fast traversal
     const workspaceDirs = await glob(workspaceGlobs, {
         cwd,
         onlyDirectories: true,
         absolute: false,
+        ignore: [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/dist/**",
+            "**/.next/**",
+            "**/.turbo/**",
+            "**/build/**",
+        ],
     });
 
-    const workspaces: Workspace[] = [];
-
-    for (const dir of workspaceDirs) {
-        const workspacePkgJsonPath = path.join(cwd, dir, 'package.json');
-        if (fs.existsSync(workspacePkgJsonPath)) {
-            try {
-                const workspacePkgJson = JSON.parse(
-                    fs.readFileSync(workspacePkgJsonPath, 'utf-8'),
-                );
-                if (workspacePkgJson.name) {
-                    const type: WorkspaceType = dir.startsWith('apps/')
-                        ? 'app'
-                        : 'package';
-                    workspaces.push({
-                        name: workspacePkgJson.name,
-                        dir,
-                        type,
-                    });
-                }
-            } catch {
-                // Skip invalid package.json
+    // 4. Parallel read package.json files
+    const workspacePromises = workspaceDirs.map(async (dir) => {
+        const workspacePkgJsonPath = path.join(cwd, dir, "package.json");
+        try {
+            const content = await fs.promises.readFile(workspacePkgJsonPath, "utf-8");
+            const workspacePkgJson = JSON.parse(content);
+            if (workspacePkgJson.name) {
+                const type: WorkspaceType = dir.startsWith("apps/") ? "app" : "package";
+                return {
+                    name: workspacePkgJson.name as string,
+                    dir,
+                    type,
+                };
             }
+        } catch {
+            // Skip missing or invalid package.json
         }
-    }
+        return null;
+    });
 
-    // 4. Sort: Apps first, then Packages, alphabetical within each group
+    const results = await Promise.all(workspacePromises);
+    const workspaces = results.filter((w): w is Workspace => w !== null);
+
+    // 5. Sort: Apps first, then Packages, alphabetical within each group
     return workspaces.sort((a, b) => {
         if (a.type !== b.type) {
-            return a.type === 'app' ? -1 : 1;
+            return a.type === "app" ? -1 : 1;
         }
         return a.name.localeCompare(b.name);
     });
